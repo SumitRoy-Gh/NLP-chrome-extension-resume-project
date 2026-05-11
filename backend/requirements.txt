@@ -1,0 +1,7 @@
+flask
+flask-cors
+openai-whisper
+sentence-transformers
+chromadb
+yt-dlp
+torch
