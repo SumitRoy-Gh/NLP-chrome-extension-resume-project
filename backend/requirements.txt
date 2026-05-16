@@ -1,7 +1,8 @@
 flask
 flask-cors
 openai-whisper
-sentence-transformers
+sentence-transformers<=2.6.1
+transformers<=4.39.3
 chromadb
 yt-dlp
 torch

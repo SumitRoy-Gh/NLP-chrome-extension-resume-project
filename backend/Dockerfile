@@ -19,6 +19,12 @@ FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
 # If the folder doesn't exist, Docker creates it.
 WORKDIR /app
 
+# ── Prevent interactive prompts ──────────────────────────────────────────────
+# This tells the Linux package manager to use default values instead of
+# stopping the build to ask you questions (like your timezone).
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
 # ── Install system dependencies ───────────────────────────────────────────────
 # We need ffmpeg (for audio extraction) and a few libraries that
 # Python packages depend on at the system level.
