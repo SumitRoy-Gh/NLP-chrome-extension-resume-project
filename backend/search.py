@@ -11,19 +11,25 @@
 # First pass is fast (precomputed vectors), second pass is slow but precise
 # and only runs on 20 candidates, not the entire database.
 
+import torch
 import chromadb
 from sentence_transformers import SentenceTransformer, CrossEncoder
+
+# ── Device selection ─────────────────────────────────────────────────────────
+# Use GPU if available, otherwise CPU. Must match ingestion.py's device.
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"Search module using device: {DEVICE}")
 
 # ── Load models (same instances as ingestion.py if imported from there) ───────
 # In production you would share these via a module-level singleton.
 # For clarity, we reload them here. In app.py we will import from ingestion.py.
 
-EMBED_MODEL   = SentenceTransformer("all-MiniLM-L6-v2")
+EMBED_MODEL   = SentenceTransformer("all-MiniLM-L6-v2", device=DEVICE)
 
 # CrossEncoder takes a (query, document) pair and outputs a relevance score.
 # ms-marco-MiniLM-L-6-v2 is trained on Microsoft's MARCO dataset,
 # which contains real search queries and their relevant passages.
-RERANK_MODEL  = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+RERANK_MODEL  = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2", device=DEVICE)
 
 CHROMA_CLIENT = chromadb.PersistentClient(path="./chroma_store")
 COLLECTION    = CHROMA_CLIENT.get_or_create_collection(

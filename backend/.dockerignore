@@ -1,0 +1,22 @@
+# .dockerignore
+# Tells Docker what NOT to copy into the image.
+# Skipping these makes the build faster and the image smaller.
+
+# Virtual environment — Docker installs its own packages
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# ChromaDB data — mounted as a volume, not baked into image
+chroma_store/
+
+# Temporary audio files
+temp_audio/
+
+# Model cache — will be downloaded fresh during build
+model_cache/
+
+# Development files
+.env
+*.log

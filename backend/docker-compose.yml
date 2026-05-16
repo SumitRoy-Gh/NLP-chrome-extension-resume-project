@@ -1,0 +1,66 @@
+# docker-compose.yml
+# ------------------
+# Docker Compose file that defines how to run the backend container.
+# Run with: docker-compose up
+# Stop with: docker-compose down
+
+version: "3.9"
+
+services:
+  # "backend" is the name we give this service
+  backend:
+    # Build the image from the Dockerfile in the current directory (.)
+    build: .
+
+    # Map port 5000 on your computer to port 5000 inside the container.
+    # Format is "host_port:container_port"
+    # This is what lets your Chrome extension reach localhost:5000
+    ports:
+      - "5000:5000"
+
+    # Volumes mount folders from your computer INTO the container.
+    # This is critical for two reasons:
+    #
+    # 1. chroma_store: ChromaDB data persists even if the container restarts.
+    #    Without this, every time you restart the container, all ingested
+    #    videos would be lost and you'd have to re-ingest everything.
+    #
+    # 2. temp_audio: audio files are written here during ingestion.
+    #    Mounting it means you can inspect them from your computer if needed.
+    #
+    # Format: "./local_folder:./container_folder"
+    volumes:
+      - ./chroma_store:/app/chroma_store
+      - ./temp_audio:/app/temp_audio
+
+    # Environment variables passed into the container.
+    # These configure Python and the app's behavior.
+    environment:
+      # Don't buffer Python output — print statements appear immediately
+      # in docker logs instead of being buffered and delayed
+      - PYTHONUNBUFFERED=1
+
+      # Tell sentence-transformers where to cache downloaded models.
+      # Without this, it downloads models to a default location that
+      # gets wiped when the container restarts.
+      - SENTENCE_TRANSFORMERS_HOME=/app/model_cache
+
+      # Tell Whisper where to store its model cache
+      - WHISPER_CACHE=/app/model_cache
+
+    # Restart policy: if the container crashes, automatically restart it.
+    # "unless-stopped" means restart always EXCEPT when you manually stop it.
+    restart: unless-stopped
+
+    # Resource limits — prevents the container from eating all your RAM.
+    # Whisper + embedding models use about 1.5GB RAM.
+    # Setting a limit prevents your computer from freezing.
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          memory: 4G        # maximum 4GB RAM

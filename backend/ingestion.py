@@ -9,11 +9,18 @@
 #   5. Stores every chunk (text + embedding + timestamp metadata) in ChromaDB
 
 import os
+import torch
 import whisper
 import yt_dlp
 import chromadb
 from sentence_transformers import SentenceTransformer
 from chunker import make_chunks
+
+# ── Device selection ─────────────────────────────────────────────────────────
+# Use GPU if available (NVIDIA CUDA), otherwise fall back to CPU.
+# This single check controls all model loading below.
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"Using device: {DEVICE}")
 
 # ── Load models once at import time ──────────────────────────────────────────
 # Loading these is slow (several seconds). We load them once when the server
@@ -23,12 +30,12 @@ from chunker import make_chunks
 # Options in order of size/accuracy: tiny, base, small, medium, large-v3
 # For a laptop, "base" or "small" is recommended.
 print("Loading Whisper model...")
-WHISPER_MODEL = whisper.load_model("base")
+WHISPER_MODEL = whisper.load_model("base", device=DEVICE)
 
 # This is the bi-encoder model. It converts a sentence into a 384-number vector.
 # "all-MiniLM-L6-v2" is the best balance of speed and accuracy for this use case.
 print("Loading embedding model...")
-EMBED_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
+EMBED_MODEL = SentenceTransformer("all-MiniLM-L6-v2", device=DEVICE)
 
 # ── Connect to ChromaDB ───────────────────────────────────────────────────────
 # ChromaDB stores our vectors on disk in the "chroma_store" folder.
