@@ -1,0 +1,319 @@
+/* sidebar.css
+   -----------
+   Styles for the search sidebar. This CSS file is loaded inside the iframe,
+   so it is completely isolated from YouTube's own styles. Nothing here
+   will accidentally override YouTube's CSS or vice versa.
+*/
+
+/* ── Reset + base ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  background: #ffffff;
+  color: #0f0f0f;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;   /* stack children vertically */
+  overflow: hidden;         /* no scrollbars on the body — only results scroll */
+}
+
+/* ── Header ── */
+.header {
+  background: #ff0000;
+  color: #ffffff;
+  padding: 14px 16px 12px;
+  flex-shrink: 0;           /* don't shrink when content grows */
+}
+
+.header h1 {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.header p {
+  font-size: 11px;
+  opacity: 0.88;
+  margin-top: 2px;
+}
+
+/* ── Status bar ── */
+/* Shows the current video ID and the "Process Video" button */
+.status-bar {
+  padding: 10px 16px;
+  background: #f9f9f9;
+  border-bottom: 1px solid #e5e5e5;
+  flex-shrink: 0;
+}
+
+.video-label {
+  font-size: 11px;
+  color: #606060;
+}
+
+.video-label span {
+  font-family: monospace;
+  color: #0f0f0f;
+  font-weight: 600;
+}
+
+.status-text {
+  margin-top: 5px;
+  font-size: 12px;
+  color: #606060;
+}
+
+.status-text.ready   { color: #1a7f37; font-weight: 600; }
+.status-text.error   { color: #cc0000; }
+.status-text.loading { color: #065fd4; }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-block;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+  width: 100%;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.btn-ingest {
+  background: #065fd4;
+  color: #ffffff;
+}
+
+.btn-ingest:hover    { background: #0356c0; }
+.btn-ingest:disabled { background: #aaaaaa; cursor: not-allowed; opacity: 0.7; }
+
+/* ── Progress bar ── */
+/* Shown during ingestion so the user knows something is happening */
+.progress-wrap {
+  padding: 10px 16px;
+  background: #f0f7ff;
+  border-bottom: 1px solid #d0e5ff;
+  flex-shrink: 0;
+  display: none;  /* hidden by default, shown via JS */
+}
+
+.progress-wrap.visible { display: block; }
+
+.progress-label {
+  font-size: 11px;
+  color: #065fd4;
+  margin-bottom: 6px;
+}
+
+.progress-bar-track {
+  width: 100%;
+  height: 4px;
+  background: #d0e5ff;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: #065fd4;
+  border-radius: 2px;
+  width: 0%;
+  transition: width 0.3s ease;
+  animation: indeterminate 1.5s infinite ease-in-out;
+}
+
+/* Indeterminate animation — slides back and forth since we don't know % done */
+@keyframes indeterminate {
+  0%   { transform: translateX(-100%); width: 60%; }
+  100% { transform: translateX(200%);  width: 60%; }
+}
+
+/* ── Search area ── */
+.search-area {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e5e5;
+  flex-shrink: 0;
+}
+
+.search-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.search-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1.5px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+  color: #0f0f0f;
+}
+
+.search-input:focus          { border-color: #065fd4; }
+.search-input:disabled       { background: #f5f5f5; color: #aaa; }
+.search-input::placeholder   { color: #aaaaaa; }
+
+.btn-search {
+  padding: 8px 14px;
+  background: #ff0000;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-search:hover    { background: #cc0000; }
+.btn-search:disabled { background: #aaaaaa; cursor: not-allowed; }
+
+/* ── Results area ── */
+/* This is the only scrollable part of the sidebar */
+.results-area {
+  flex: 1;              /* take all remaining vertical space */
+  overflow-y: auto;     /* scroll if results exceed the height */
+  padding: 4px 0 16px;
+}
+
+/* Custom scrollbar — optional but looks clean */
+.results-area::-webkit-scrollbar       { width: 4px; }
+.results-area::-webkit-scrollbar-track { background: transparent; }
+.results-area::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 2px; }
+
+/* ── State messages ── */
+/* Empty state, error state, etc. */
+.state-msg {
+  padding: 32px 20px;
+  text-align: center;
+  color: #606060;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.state-msg .icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+/* ── Loading spinner ── */
+.spinner-wrap {
+  padding: 40px 16px;
+  text-align: center;
+  color: #606060;
+  font-size: 12px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid #f0f0f0;
+  border-top-color: #ff0000;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Result count label ── */
+.result-count {
+  padding: 8px 16px 4px;
+  font-size: 11px;
+  color: #606060;
+}
+
+/* ── Result card ── */
+.result-card {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f2f2f2;
+  cursor: pointer;
+  transition: background 0.1s;
+  position: relative;
+}
+
+.result-card:hover           { background: #f9f9f9; }
+.result-card:active          { background: #f0f0f0; }
+.result-card:last-child      { border-bottom: none; }
+
+/* Timestamp badge */
+.result-card .timestamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #ff0000;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: monospace;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-bottom: 7px;
+  letter-spacing: 0.5px;
+}
+
+/* Play icon inside timestamp badge */
+.result-card .timestamp::before {
+  content: "▶";
+  font-size: 8px;
+}
+
+/* Snippet text */
+.result-card .snippet {
+  font-size: 12px;
+  color: #3d3d3d;
+  line-height: 1.55;
+  /* Clamp to 3 lines with ellipsis */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Relevance score — shown in bottom right of card */
+.result-card .score {
+  position: absolute;
+  bottom: 10px;
+  right: 14px;
+  font-size: 10px;
+  color: #aaaaaa;
+}
+
+/* ── Error box ── */
+.error-box {
+  margin: 12px 16px;
+  padding: 10px 14px;
+  background: #fff3f3;
+  border-left: 3px solid #ff0000;
+  border-radius: 0 6px 6px 0;
+  font-size: 12px;
+  color: #cc0000;
+  line-height: 1.5;
+}
+
+/* ── Footer ── */
+.footer {
+  padding: 8px 16px;
+  font-size: 10px;
+  color: #c0c0c0;
+  text-align: center;
+  border-top: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}

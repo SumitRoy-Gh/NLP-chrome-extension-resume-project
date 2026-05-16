@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YT Semantic Search</title>
+  <link rel="stylesheet" href="sidebar.css" />
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <div class="header">
+    <h1>Semantic Video Search</h1>
+    <p>Search by concept · Jump to exact timestamp</p>
+  </div>
+
+  <!-- ── Status bar ── -->
+  <!-- Shows which video is loaded and whether it's been processed -->
+  <div class="status-bar">
+    <div class="video-label">
+      Video: <span id="video-id-display">—</span>
+    </div>
+    <div id="status-text" class="status-text">Checking...</div>
+    <button id="btn-ingest" class="btn btn-ingest" style="display:none;">
+      ⚙ Process this video
+    </button>
+  </div>
+
+  <!-- ── Progress bar ── -->
+  <!-- Shown during ingestion — animated, indeterminate -->
+  <div id="progress-wrap" class="progress-wrap">
+    <div class="progress-label" id="progress-label">
+      Downloading and transcribing video...
+    </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill"></div>
+    </div>
+  </div>
+
+  <!-- ── Search bar ── -->
+  <div class="search-area">
+    <div class="search-row">
+      <input
+        type="text"
+        id="search-input"
+        class="search-input"
+        placeholder="e.g. backpropagation, attention mechanism..."
+        disabled
+      />
+      <button id="btn-search" class="btn-search" disabled>Search</button>
+    </div>
+  </div>
+
+  <!-- ── Results area ── -->
+  <!-- sidebar.js writes into this div dynamically -->
+  <div id="results-area" class="results-area">
+    <div class="state-msg">
+      <div class="icon">🎬</div>
+      Process the video first, then search inside it.
+    </div>
+  </div>
+
+  <!-- ── Footer ── -->
+  <div class="footer">YT Semantic Search · Flask + Whisper + ChromaDB</div>
+
+  <!-- Load sidebar logic last, after the DOM is ready -->
+  <script src="sidebar.js"></script>
+</body>
+</html>
