@@ -84,32 +84,51 @@ def download_audio(youtube_url: str, output_path: str = "./temp_audio") -> str:
 def transcribe_audio(audio_path: str) -> list:
     """
     Runs Whisper on the audio file.
-    Returns a list of segments like:
-    [{"start": 0.0, "end": 4.2, "text": "Hello everyone"}, ...]
-    
-    word_timestamps=True tells Whisper to give per-word timing,
-    which makes our timestamp precision much better.
+    Auto-detects language.
+    - If the video is in English → transcribe normally in English
+    - If the video is in any other language → translate to English
+    This way search always works in English regardless of video language.
     """
-    
+
     print(f"Transcribing {audio_path} ...")
-    
-    # Whisper's transcribe() does all the heavy lifting
+
+    # Step 1: Detect language first using a short sample
+    # Whisper can detect the language from the first 30 seconds of audio
+    import whisper
+    audio = whisper.load_audio(audio_path)
+    audio_sample = whisper.pad_or_trim(audio)  # trims to 30 seconds
+    mel = whisper.log_mel_spectrogram(audio_sample).to(WHISPER_MODEL.device)
+    _, probs = WHISPER_MODEL.detect_language(mel)
+    detected_lang = max(probs, key=probs.get)  # e.g. "hi", "en", "fr"
+    print(f"Detected language: {detected_lang}")
+
+    # Step 2: Decide task based on detected language
+    if detected_lang == "en":
+        # English video — transcribe as-is, no translation needed
+        task = "transcribe"
+        language = "en"
+        print("English video — transcribing directly")
+    else:
+        # Non-English video — translate to English so search works
+        task = "translate"
+        language = detected_lang
+        print(f"Non-English video ({detected_lang}) — translating to English")
+
+    # Step 3: Run the actual transcription/translation
     result = WHISPER_MODEL.transcribe(
         audio_path,
-        word_timestamps=True,   # get precise per-word timing
-        verbose=False           # don't print every segment
+        word_timestamps=True,
+        verbose=False,
+        language=language,   # tell Whisper what language the audio is in
+        task=task            # "transcribe" or "translate"
     )
-    
-    # result["segments"] is a list of dicts.
-    # Each dict has: id, start, end, text, words (list of word-level timestamps)
-    # We only need start, end, text for our chunking step.
+
     segments = [
         {"start": seg["start"], "end": seg["end"], "text": seg["text"]}
         for seg in result["segments"]
     ]
-    
-    return segments
 
+    return segments
 
 def embed_chunks(chunks: list) -> list:
     """
