@@ -1,0 +1,21 @@
+# Virtual environment
+venv/
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Project specific
+backend/chroma_store/
+backend/temp_audio/
+backend/temp/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
